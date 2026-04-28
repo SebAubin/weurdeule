@@ -1,9 +1,8 @@
 (function () {
-  // ------- Décodage des mots (XOR + base64) -------
-  // L'idée : on décode la liste à l'intérieur de l'IIFE, puis on supprime
-  // la donnée encodée de window. Plus rien n'est accessible via la console.
-  function decodeWords() {
-    const enc = window.__wd_data;
+  // ------- Décodage de la liste des solutions (XOR + base64) -------
+  // La donnée encodée est décodée à l'intérieur de l'IIFE puis effacée de window.
+  // La validation des essais se fait via l'API Wiktionary (voir plus bas).
+  function decodeWords(enc) {
     if (!enc) return [];
     const KEY = "weurdeule-secret-key-42";
     const bin = atob(enc);
@@ -14,8 +13,50 @@
     return out.split(",");
   }
 
-  const VALID_WORDS = [...new Set(decodeWords().filter(w => w.length === 5))];
-  try { delete window.__wd_data; } catch (_) { window.__wd_data = undefined; }
+  const SOLUTIONS = [...new Set(decodeWords(window.__wd_sol).filter(w => w.length === 5))];
+  try { delete window.__wd_sol; } catch (_) { window.__wd_sol = undefined; }
+
+  // ------- Validation via l'API Wiktionary -------
+  const WIKTI_CACHE_KEY = "weurdeule.validCache";
+  const WIKTI_INVALID_KEY = "weurdeule.invalidCache";
+  // Cache local pour éviter de re-vérifier les mêmes mots
+  const validCache = new Set([...SOLUTIONS, ...loadCache(WIKTI_CACHE_KEY)]);
+  const invalidCache = new Set(loadCache(WIKTI_INVALID_KEY));
+
+  function loadCache(key) {
+    try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
+  }
+  function saveCache(key, set) {
+    localStorage.setItem(key, JSON.stringify([...set]));
+  }
+
+  async function isValidWord(word) {
+    if (validCache.has(word)) return true;
+    if (invalidCache.has(word)) return false;
+    try {
+      const url = `https://fr.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&format=json&origin=*`;
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 5000);
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      const pages = data?.query?.pages || {};
+      const exists = Object.values(pages).some(p => !p.missing && p.pageid);
+      if (exists) {
+        validCache.add(word);
+        saveCache(WIKTI_CACHE_KEY, validCache);
+      } else {
+        invalidCache.add(word);
+        saveCache(WIKTI_INVALID_KEY, invalidCache);
+      }
+      return exists;
+    } catch (e) {
+      // En cas d'erreur réseau, on est indulgent : le mot est accepté
+      console.warn("Validation API indisponible, mot accepté par défaut");
+      return true;
+    }
+  }
 
   const ROWS = 6;
   const COLS = 5;
@@ -45,7 +86,7 @@
 
   // SOLUTION reste dans la closure de l'IIFE — invisible depuis la console.
   const TODAY_INDEX = dayIndex();
-  const SOLUTION = VALID_WORDS[((TODAY_INDEX % VALID_WORDS.length) + VALID_WORDS.length) % VALID_WORDS.length];
+  const SOLUTION = SOLUTIONS[((TODAY_INDEX % SOLUTIONS.length) + SOLUTIONS.length) % SOLUTIONS.length];
 
   // ------- Construction de la grille -------
   function buildBoard() {
@@ -118,14 +159,22 @@
     return s.normalize("NFD").replace(/[̀-ͯ]/g, "");
   }
 
-  function submitGuess() {
+  let isValidating = false;
+  async function submitGuess() {
+    if (isValidating) return;
     if (currentGuess.length !== COLS) {
       shakeRow();
       showToast("Pas assez de lettres");
       return;
     }
     const guess = stripAccents(currentGuess.toLowerCase());
-    if (!VALID_WORDS.includes(guess)) {
+
+    isValidating = true;
+    showToast("Vérification…", 800);
+    const ok = await isValidWord(guess);
+    isValidating = false;
+
+    if (!ok) {
       shakeRow();
       showToast("Mot inconnu");
       return;
