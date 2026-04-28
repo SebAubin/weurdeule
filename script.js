@@ -388,7 +388,8 @@
     const emojiMap = { correct: "🟩", present: "🟨", absent: "⬛" };
     const lines = guesses.map(g => g.result.map(r => emojiMap[r]).join(""));
     const score = won ? guesses.length : "X";
-    return `Weurdeule #${TODAY_INDEX + 1} ${score}/${ROWS}\n\n${lines.join("\n")}`;
+    const num = (TODAY_INDEX + 1).toLocaleString("fr-FR");
+    return `Weurdeule ${num} ${score}/${ROWS}\n\n${lines.join("\n")}`;
   }
 
   function share() {
