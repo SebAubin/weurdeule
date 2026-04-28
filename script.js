@@ -17,8 +17,10 @@
   try { delete window.__wd_sol; } catch (_) { window.__wd_sol = undefined; }
 
   // ------- Validation via l'API Wiktionary -------
-  const WIKTI_CACHE_KEY = "weurdeule.validCache";
-  const WIKTI_INVALID_KEY = "weurdeule.invalidCache";
+  // v2 : on a basculé sur la vérification de section "Français", donc l'ancien
+  // cache (validCache/invalidCache) pouvait contenir des mots anglais — on l'ignore.
+  const WIKTI_CACHE_KEY = "weurdeule.validCache.v2";
+  const WIKTI_INVALID_KEY = "weurdeule.invalidCache.v2";
   // Cache local pour éviter de re-vérifier les mêmes mots
   const validCache = new Set([...SOLUTIONS, ...loadCache(WIKTI_CACHE_KEY)]);
   const invalidCache = new Set(loadCache(WIKTI_INVALID_KEY));
@@ -34,25 +36,32 @@
     if (validCache.has(word)) return true;
     if (invalidCache.has(word)) return false;
     try {
-      const url = `https://fr.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&format=json&origin=*`;
+      // On utilise l'API parse pour récupérer les sections de la page Wiktionary,
+      // puis on vérifie qu'il existe bien une section "Français" (niveau 2).
+      // Sans cette vérification, des mots anglais comme "horse" passeraient.
+      const url = `https://fr.wiktionary.org/w/api.php?action=parse&page=${encodeURIComponent(word)}&prop=sections&format=json&origin=*`;
       const ctrl = new AbortController();
       const timeout = setTimeout(() => ctrl.abort(), 5000);
       const res = await fetch(url, { signal: ctrl.signal });
       clearTimeout(timeout);
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
-      const pages = data?.query?.pages || {};
-      const exists = Object.values(pages).some(p => !p.missing && p.pageid);
-      if (exists) {
+      let isFrench = false;
+      if (data?.parse?.sections) {
+        isFrench = data.parse.sections.some(s =>
+          String(s.level) === "2" && /Français/.test(s.line || "")
+        );
+      }
+      // Si data.error.code === "missingtitle", la page n'existe pas du tout
+      if (isFrench) {
         validCache.add(word);
         saveCache(WIKTI_CACHE_KEY, validCache);
       } else {
         invalidCache.add(word);
         saveCache(WIKTI_INVALID_KEY, invalidCache);
       }
-      return exists;
+      return isFrench;
     } catch (e) {
-      // En cas d'erreur réseau, on est indulgent : le mot est accepté
       console.warn("Validation API indisponible, mot accepté par défaut");
       return true;
     }

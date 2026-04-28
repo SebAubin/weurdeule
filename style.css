@@ -16,7 +16,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -61,25 +61,29 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem 0.5rem 0;
+  justify-content: space-evenly;
+  padding: 0.5rem;
   position: relative;
   max-width: 500px;
   width: 100%;
   margin: 0 auto;
+  overflow: hidden;
 }
 
 .board {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  gap: 5px;
   padding: 10px;
-  width: min(330px, 90vw);
+  width: min(330px, 88vw);
+  aspect-ratio: 5 / 6;
+  max-height: calc(100vh - 280px);
 }
 
 .row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
+  gap: 5px;
 }
 
 .cell {
@@ -91,7 +95,6 @@ main {
   font-weight: 700;
   text-transform: uppercase;
   user-select: none;
-  aspect-ratio: 1 / 1;
   transition: border-color 0.1s, transform 0.1s;
 }
 
@@ -147,8 +150,8 @@ main {
   gap: 6px;
   width: 100%;
   padding: 8px 4px max(8px, env(safe-area-inset-bottom));
-  margin-top: auto;
   background: var(--bg);
+  flex-shrink: 0;
 }
 
 .keyboard-row {
