@@ -69,12 +69,11 @@ main {
 }
 
 .board {
-  display: grid;
-  grid-template-rows: repeat(6, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 6px;
   padding: 10px;
-  max-height: 420px;
-  aspect-ratio: 5 / 6;
+  width: min(330px, 90vw);
 }
 
 .row {
