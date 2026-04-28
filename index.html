@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Weurdeule — Le Wordle à la française</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <button id="help-btn" class="icon-btn" aria-label="Aide">?</button>
+    <h1>Weurdeule</h1>
+    <button id="stats-btn" class="icon-btn" aria-label="Statistiques">📊</button>
+  </header>
+
+  <main>
+    <div id="board" class="board"></div>
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <div id="keyboard" class="keyboard"></div>
+  </main>
+
+  <div id="help-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn" data-close>×</button>
+      <h2>Comment jouer</h2>
+      <p>Devinez le <b>Weurdeule</b> en 6 essais.</p>
+      <ul>
+        <li>Chaque mot doit contenir 5 lettres.</li>
+        <li>Les accents ne sont pas nécessaires (tapez sans accent).</li>
+        <li>Après chaque essai, la couleur des cases vous indique si vous approchez du mot.</li>
+      </ul>
+      <h3>Exemples</h3>
+      <div class="example">
+        <div class="row mini">
+          <div class="cell correct">T</div><div class="cell">A</div><div class="cell">B</div><div class="cell">L</div><div class="cell">E</div>
+        </div>
+        <p>La lettre <b>T</b> est dans le mot et au bon endroit.</p>
+      </div>
+      <div class="example">
+        <div class="row mini">
+          <div class="cell">C</div><div class="cell present">H</div><div class="cell">I</div><div class="cell">E</div><div class="cell">N</div>
+        </div>
+        <p>La lettre <b>H</b> est dans le mot mais au mauvais endroit.</p>
+      </div>
+      <div class="example">
+        <div class="row mini">
+          <div class="cell">R</div><div class="cell">O</div><div class="cell">U</div><div class="cell absent">T</div><div class="cell">E</div>
+        </div>
+        <p>La lettre <b>T</b> n'est pas dans le mot.</p>
+      </div>
+      <p class="small">Un nouveau Weurdeule est disponible chaque jour !</p>
+    </div>
+  </div>
+
+  <div id="stats-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn" data-close>×</button>
+      <h2>Statistiques</h2>
+      <div class="stats-row">
+        <div><div class="stat-num" id="stat-played">0</div><div class="stat-label">Parties</div></div>
+        <div><div class="stat-num" id="stat-winrate">0</div><div class="stat-label">% Victoires</div></div>
+        <div><div class="stat-num" id="stat-streak">0</div><div class="stat-label">Série</div></div>
+        <div><div class="stat-num" id="stat-maxstreak">0</div><div class="stat-label">Meilleure série</div></div>
+      </div>
+      <h3>Distribution des essais</h3>
+      <div id="distribution" class="distribution"></div>
+      <div class="next-word">
+        <div>
+          <div class="small">Prochain Weurdeule</div>
+          <div id="countdown" class="countdown">--:--:--</div>
+        </div>
+        <button id="share-btn" class="share-btn">Partager</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="words.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
