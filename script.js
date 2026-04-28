@@ -425,6 +425,14 @@
     loadState();
 
     document.addEventListener("keydown", (e) => {
+      // Raccourci dev : Ctrl/Cmd + Shift + Backspace réinitialise la partie
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "Backspace") {
+        e.preventDefault();
+        ["weurdeule.state", "weurdeule.stats"].forEach(k => localStorage.removeItem(k));
+        showToast("Partie réinitialisée");
+        setTimeout(() => location.reload(), 400);
+        return;
+      }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "Enter") return handleKey("ENTRER");
       if (e.key === "Backspace") return handleKey("RETOUR");
