@@ -403,11 +403,10 @@
 
   function share() {
     const text = buildShareText();
-    if (navigator.share) {
-      navigator.share({ text }).catch(() => copyToClipboard(text));
-    } else {
-      copyToClipboard(text);
-    }
+    // Comme le vrai Wordle : on copie toujours dans le presse-papier au lieu
+    // d'ouvrir la feuille de partage native (qui sur Windows liste Outlook/
+    // Teams/Copilot, peu pertinent ici).
+    copyToClipboard(text);
   }
 
   function copyToClipboard(text) {
