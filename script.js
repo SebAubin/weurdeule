@@ -97,8 +97,8 @@
   // même jour → même mot, mais deux jours consécutifs ne se suivent plus dans la liste.
   function shuffledIndex(n) {
     let x = (n + 1) | 0;
-    x = Math.imul(x ^ (x >>> 16), 0x7feb352d);
-    x = Math.imul(x ^ (x >>> 15), 0x846ca68b);
+    x = Math.imul(x ^ (x >>> 16), 0x85ebca6b);
+    x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35);
     x = x ^ (x >>> 16);
     return x >>> 0;
   }
