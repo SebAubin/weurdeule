@@ -93,9 +93,19 @@
     return Math.floor((today - epoch) / 86400000);
   }
 
+  // Hash déterministe (xorshift mixer) pour éviter l'ordre alphabétique :
+  // même jour → même mot, mais deux jours consécutifs ne se suivent plus dans la liste.
+  function shuffledIndex(n) {
+    let x = (n + 1) | 0;
+    x = Math.imul(x ^ (x >>> 16), 0x7feb352d);
+    x = Math.imul(x ^ (x >>> 15), 0x846ca68b);
+    x = x ^ (x >>> 16);
+    return x >>> 0;
+  }
+
   // SOLUTION reste dans la closure de l'IIFE — invisible depuis la console.
   const TODAY_INDEX = dayIndex();
-  const SOLUTION = SOLUTIONS[((TODAY_INDEX % SOLUTIONS.length) + SOLUTIONS.length) % SOLUTIONS.length];
+  const SOLUTION = SOLUTIONS[shuffledIndex(TODAY_INDEX) % SOLUTIONS.length];
 
   // ------- Construction de la grille -------
   function buildBoard() {
